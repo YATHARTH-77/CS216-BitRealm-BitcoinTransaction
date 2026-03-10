@@ -2,7 +2,7 @@ from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 import time
 import os
 
-# --- CONFIGURATION ---
+#  CONFIGURATION 
 RPC_USER = 'admin'
 RPC_PASSWORD = 'admin'
 RPC_HOST = '127.0.0.1'
@@ -38,9 +38,8 @@ def run_lab():
     rpc.generatetoaddress(101, miner_addr)
     print("[+] Wallet funded.")
 
-    # =================================================================
     # PART 1: LEGACY TRANSACTIONS (P2PKH)
-    # =================================================================
+
     print_section("PART 1: LEGACY TRANSACTIONS (P2PKH)")
 
     # A. Generate Addresses
@@ -54,7 +53,7 @@ def run_lab():
     rpc.generatetoaddress(1, miner_addr) # Confirm it
     print(f"[+] Funded A. TXID: {txid_fund}")
 
-    # --- Transaction 1: A -> B ---
+    # Transaction 1: A -> B
     print("\n[STEP] Creating Tx 1: A -> B")
     utxo_A = rpc.listunspent(1, 9999999, [addr_A])[0]
     
@@ -71,7 +70,7 @@ def run_lab():
     decoded_1 = rpc.decoderawtransaction(signed_tx_1['hex'])
     print(f"    Size: {decoded_1['size']} bytes | VSize: {decoded_1['vsize']} vbytes")
 
-    # --- Transaction 2: B -> C ---
+    #  Transaction 2: B -> C 
     print("\n[STEP] Creating Tx 2: B -> C")
     utxo_B = rpc.listunspent(1, 9999999, [addr_B])[0]
     
@@ -84,9 +83,8 @@ def run_lab():
     print(f"--> Broadcasted Tx 2 (B->C): {txid_2}")
     rpc.generatetoaddress(1, miner_addr)
 
-    # =================================================================
     # PART 2: SEGWIT TRANSACTIONS (P2SH-P2WPKH)
-    # =================================================================
+
     print_section("PART 2: SEGWIT TRANSACTIONS (P2SH-P2WPKH)")
 
     # A. Generate Addresses (Note: p2sh-segwit)
@@ -99,7 +97,7 @@ def run_lab():
     rpc.sendtoaddress(addr_As, 1.0)
     rpc.generatetoaddress(1, miner_addr)
 
-    # --- Transaction 3: A' -> B' ---
+    # Transaction 3: A' -> B' 
     print("\n[STEP] Creating Tx 3: A' -> B'")
     utxo_As = rpc.listunspent(1, 9999999, [addr_As])[0]
     inputs_s1 = [{"txid": utxo_As['txid'], "vout": utxo_As['vout']}]
@@ -114,7 +112,7 @@ def run_lab():
     decoded_s1 = rpc.decoderawtransaction(signed_tx_s1['hex'])
     print(f"    Size: {decoded_s1['size']} bytes | VSize: {decoded_s1['vsize']} vbytes")
 
-    # --- Transaction 4: B' -> C' ---
+    # Transaction 4: B' -> C' 
     print("\n[STEP] Creating Tx 4: B' -> C'")
     utxo_Bs = rpc.listunspent(1, 9999999, [addr_Bs])[0]
     inputs_s2 = [{"txid": utxo_Bs['txid'], "vout": utxo_Bs['vout']}]
@@ -129,7 +127,5 @@ def run_lab():
     with open("legacy.hex", "w") as f: f.write(signed_tx_1['hex'])
     with open("segwit.hex", "w") as f: f.write(signed_tx_s1['hex'])
     print("\n[SUCCESS] Raw transaction hexes saved to 'legacy.hex' and 'segwit.hex'")
-    print("Use these files with 'btcdeb' for your report screenshots.")
-
 if __name__ == "__main__":
     run_lab()
