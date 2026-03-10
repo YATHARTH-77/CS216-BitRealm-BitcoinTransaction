@@ -152,8 +152,8 @@ CS216-BitRealm-BitcoinTransaction/
 
 | Metric | Legacy (P2PKH) | SegWit (P2SH-P2WPKH) |
 |--------|:--------------:|:---------------------:|
-| **Size** | ~226 bytes | ~249 bytes |
-| **Virtual Size (vsize)** | ~226 vbytes | ~166 vbytes |
+| **Size** | 191 bytes | 215 bytes |
+| **Virtual Size (vsize)** | 191 vbytes | 134 vbytes |
 
 - **SegWit transactions** have a smaller **virtual size** because witness data is discounted (counted at ¼ weight).
 - This means SegWit transactions pay **lower fees** for the same logical operation, making them more economical.
