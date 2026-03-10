@@ -58,21 +58,35 @@ Bitcoin supports multiple address/script types. This project demonstrates two of
 
 ---
 
-## 🚀 How to Run
+---
 
-### 1. Configure Bitcoin Core
+```markdown
+## 🚀 How to Run (WSL / Linux Environment)
 
-Copy the provided `bitcoin.conf` to your Bitcoin data directory:
+This project requires a Linux environment (such as WSL or Ubuntu) to properly support the Bitcoin daemon and to compile and run the `btcdeb` low-level script debugger. 
 
-| OS | Default Data Directory |
-|----|----------------------|
-| **Windows** | `%APPDATA%\Bitcoin\` |
-| **Linux** | `~/.bitcoin/` |
-| **macOS** | `~/Library/Application Support/Bitcoin/` |
+### Prerequisites
 
-The configuration file contents:
+Ensure you have Bitcoin Core (v28.1+) installed and the `btcdeb` debugger compiled in your home directory (`~/btcdeb/btcdeb`). You also need Python 3 and a few dependencies:
 
-```ini
+```bash
+sudo apt update
+sudo apt install python3-pip jq -y
+pip3 install python-bitcoinrpc --break-system-packages
+
+```
+
+---
+
+### Step 1: Configure the Local Bitcoin Node
+
+The Python script requires a local Regtest node. Regtest is a local testing environment where we can instantly mine blocks and generate fake bitcoins for testing without spending real money.
+
+Create the Bitcoin data directory and set up the configuration file:
+
+```bash
+mkdir -p ~/.bitcoin
+cat << 'EOF' > ~/.bitcoin/bitcoin.conf
 # --- Global Settings ---
 regtest=1
 server=1
@@ -87,48 +101,126 @@ paytxfee=0.0001
 fallbackfee=0.0002
 mintxfee=0.00001
 txconfirmtarget=6
+EOF
+
 ```
-
-> **Note:** The `rpcuser` and `rpcpassword` in `bitcoin.conf` must match the values in `bitcoin_lab.py` (default: `admin` / `admin`). You can change them, but make sure both files stay in sync.
-
-### 2. Start the Bitcoin Regtest Node
-
-```bash
-bitcoind -regtest
-```
-
-Wait a few seconds until the node is fully started. You can verify it's running with:
-
-```bash
-bitcoin-cli -regtest getblockchaininfo
-```
-
-### 3. Install Python Dependencies
-
-```bash
-pip install python-bitcoinrpc
-```
-
-### 4. Run the Lab Script
-
-```bash
-python bitcoin_lab.py
-```
-
-You should see output for each stage — wallet creation, mining, legacy transactions, SegWit transactions, and the saved hex files.
-
-### 5. Analyze Transactions with `btcdeb`
-
-After running the script, use the exported hex files for deeper analysis:
-
-```bash
-btcdeb --tx=$(cat legacy.hex)
-btcdeb --tx=$(cat segwit.hex)
-```
-
-This lets you step through the script execution and inspect opcodes, stack operations, and witness data.
 
 ---
+
+### Step 2: Start the Regtest Node
+
+Launch the Bitcoin daemon in the background. This starts the blockchain engine, initializes the wallet database, and allows our Python script to communicate with it via RPC.
+
+```bash
+bitcoind -regtest -daemon
+
+```
+
+> **Note:** Wait about 5-10 seconds for the node to fully wake up. You can verify it is running by checking the block count: `bitcoin-cli -regtest getblockchaininfo`.
+
+---
+
+### Step 3: Run the Automated Lab Script
+
+Navigate to the project directory where the Python script is located, and execute it. This script handles the wallet funding and generates the transaction chains (A → B → C).
+
+```bash
+# Navigate to the project directory
+cd "/mnt/c/Users/YATHARTH MAURYA/Desktop/4th SEM/BLOCKCHAIN/CS216-BitRealm-BitcoinTransaction"
+
+# Run the script
+python3 bitcoin_lab.py
+
+```
+
+**What this script does:**
+
+1. Mines 101 blocks to fund a local testing wallet.
+2. Generates a **Legacy (P2PKH)** transaction chain.
+3. Generates a **SegWit (P2SH-P2WPKH)** transaction chain.
+4. Outputs the generated Addresses, Transaction IDs (TXIDs), and calculates the Virtual Size (vSize) differences.
+
+> ⚠️ **Keep the terminal output open!** You will need the specific Addresses and TXIDs printed by the script for the debugging phase.
+
+---
+
+### Step 4: Low-Level Script Analysis with `btcdeb`
+
+To prove the execution logic of the transactions, we must extract the **Locking Script** (The Puzzle) and **Unlocking Data** (The Keys) directly from the node and manually push them to the debugger stack.
+
+*(Note: Replace the placeholder variables below with the actual data printed from Step 3).*
+
+#### Part A: Debugging the Legacy Transaction (P2PKH)
+
+1. **Extract the Puzzle (`scriptPubKey`):**
+```bash
+bitcoin-cli -regtest getaddressinfo <PASTE_ADDRESS_B_HERE>
+
+```
+
+
+*Copy the `hex` string from the `scriptPubKey` field (typically starts with `76a914...`).*
+2. **Extract the Keys (`scriptSig`):**
+```bash
+bitcoin-cli -regtest gettransaction <PASTE_TXID_B_TO_C_HERE> true
+
+```
+
+
+*Look in the `vin` array for `scriptSig.asm`. Copy the two long hex strings separated by a space (The Signature and the Public Key).*
+3. **Run the Debugger:**
+Navigate to the `btcdeb` folder and pass the three strings as arguments to pre-load the stack:
+```bash
+cd ~/btcdeb
+./btcdeb [Paste_Puzzle_Hex] [Paste_Signature_Hex] [Paste_PubKey_Hex]
+
+```
+
+
+*Type `step` in the debugger to watch the `OP_DUP`, `OP_HASH160`, `OP_EQUALVERIFY`, and `OP_CHECKSIG` execution flow.*
+
+#### Part B: Debugging the SegWit Transaction (P2SH-P2WPKH)
+
+1. **Extract the Witness Program:**
+```bash
+bitcoin-cli -regtest getaddressinfo <PASTE_SEGWIT_ADDRESS_B_HERE>
+
+```
+
+
+*Copy the **inner** `scriptPubKey` hex from the `embedded` section (starts with `0014...`).*
+2. **Extract the Witness Data:**
+```bash
+bitcoin-cli -regtest gettransaction <PASTE_SEGWIT_TXID_B_TO_C_HERE> true
+
+```
+
+
+*Scroll to the `txinwitness` array. It contains two strings: the Witness Signature and Witness Public Key. Copy both.*
+3. **Run the Debugger:**
+```bash
+./btcdeb [Paste_Witness_Program_Hex] [Paste_Witness_Sig] [Paste_Witness_PubKey]
+
+```
+
+
+*Type `step` to validate the SegWit execution. Notice how the logic is deferred to the SegWit version byte (`OP_0`) rather than executing explicit heavy opcodes on the main stack, proving why SegWit transactions are cheaper and smaller in vSize.*
+
+---
+
+### Step 5: Cleanup
+
+Once the stack analysis is complete and your screenshots are captured, safely shut down the local Bitcoin node to prevent database corruption.
+
+```bash
+bitcoin-cli -regtest stop
+
+```
+
+```
+
+***
+
 
 ## 📁 Project Structure
 
