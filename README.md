@@ -217,9 +217,7 @@ bitcoin-cli -regtest stop
 
 ```
 
-```
 
-***
 
 
 ## 📁 Project Structure
