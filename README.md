@@ -60,7 +60,7 @@ Bitcoin supports multiple address/script types. This project demonstrates two of
 
 ---
 
-```markdown
+
 ## 🚀 How to Run (WSL / Linux Environment)
 
 This project requires a Linux environment (such as WSL or Ubuntu) to properly support the Bitcoin daemon and to compile and run the `btcdeb` low-level script debugger. 
