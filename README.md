@@ -141,7 +141,11 @@ Navigate to the project directory where the Python script is located, and execut
 
 ```bash
 # Navigate to the project directory
+cd "<YOUR LOCAL PATH WHERE YOU HAVE CLONED OUR REPOSITORY>"
+
+#mine local path was like below you can take as an example 
 cd "/mnt/c/Users/YATHARTH MAURYA/Desktop/4th SEM/BLOCKCHAIN/CS216-BitRealm-BitcoinTransaction"
+
 
 # Run the script
 python3 bitcoin_lab.py
