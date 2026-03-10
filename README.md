@@ -54,7 +54,7 @@ Bitcoin supports multiple address/script types. This project demonstrates two of
 | **Bitcoin Core (`bitcoind`)** | Local regtest node | [bitcoin.org/en/download](https://bitcoin.org/en/download) |
 | **Python 3.8+** | Script runtime | [python.org](https://www.python.org/downloads/) |
 | **`python-bitcoinlib` / `python-bitcoinrpc`** | JSON-RPC client for `bitcoind` | `pip install python-bitcoinrpc` |
-| **`btcdeb`** *(optional)* | Debugger for raw transaction scripts | [github.com/bitcoin-core/btcdeb](https://github.com/bitcoin-core/btcdeb) |
+| **`btcdeb`** | Debugger for raw transaction scripts | [github.com/bitcoin-core/btcdeb](https://github.com/bitcoin-core/btcdeb) |
 
 ---
 
